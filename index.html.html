@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>J&J Logo 3D</title>
+    <style>
+        body { margin: 0; background: #f4f4f4; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 10;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 2);
+        light.position.set(2, 2, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+        const loader = new GLTFLoader();
+        let myLogo;
+
+        const modelURL = 'https://raw.githubusercontent.com/lankevenkatahemanth-beep/3d-model/main/Jnj_logo%2B3d%2Bmodel.glb';
+
+        loader.load(
+            modelURL, 
+            function (gltf) {
+                myLogo = gltf.scene;
+                const box = new THREE.Box3().setFromObject(myLogo);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+
+                myLogo.position.x += (myLogo.position.x - center.x);
+                myLogo.position.y += (myLogo.position.y - center.y);
+                myLogo.position.z += (myLogo.position.z - center.z);
+
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 5 / maxDim; 
+                myLogo.scale.set(scale, scale, scale);
+
+                scene.add(myLogo);
+                console.log("Logo Loaded Successfully");
+            }, 
+            (xhr) => { console.log((xhr.loaded / xhr.total * 100) + '% loaded'); },
+            (error) => { console.error("Error:", error); }
+        );
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (myLogo) {
+                myLogo.rotation.y += 0.01;
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
